@@ -147,18 +147,88 @@ function move(gameState) {
     //   return { move: "down" };
     // }
 
-  // TODO: Step 4 - Use A* Pathfinding instead of random move
-  const food = gameState.board.food;
-
-  
+  // TODO: Step 4 - Use food fill instead of random move
+ // const food = gameState.board.food;
   
   console.log(`MOVE ${gameState.turn}: ${nextMove}`)
 //  return { move: nextMove };
 }
 
-function aStarPathfinding(start, end, board){
-  
-}
+function foodFill(start, boardWidth, boardHeight, myBody, opponents){
+    let queue = [start];  //queue of nodes to visit
+    let visited =  []; //tracked visited nodes
+    const key = (pos) => `${pos.x},${pos.y}`;  //key for the node
+    queue.push(start);
+    // While Q is not empty:
+    while (queue.length > 0){
+      const current = queue.shift(); //remove first element from queue
+
+       // skip if already visited
+       if (visited.includes(key(current))) {
+        continue;
+      }
+
+      // mark as visited
+      visited.push(key(current));
+
+      // neighbors (4 directions)
+      const neighbors = [
+        { x: current.x, y: current.y + 1 }, // up
+        { x: current.x, y: current.y - 1 }, // down
+        { x: current.x - 1, y: current.y }, // left
+        { x: current.x + 1, y: current.y }  // right
+      ];
+
+      for(const neighbor of neighbors){
+        //if out of bounds then skip
+        //neighbor.x = left wall of board
+        //neighbor.y = bottom wall of board
+        //boardWidth - 1 = right wall of boar
+       //boardHeight - 1 = top wall of board
+
+        //if the neighbor wall is left, right, top, or bottom wall then skip
+        if(neighbor.x == 0 || neighbor.x == boardWidth - 1 || neighbor.y == 0 ||neighbor.y == boardHeight - 1){
+          continue;
+        }
+
+        let isBlocked = false;
+        //if the neighbor is a body segment then skip
+        for (let i = 0; i < myBody.length; i++){
+          const segment = myBody[i]; //part of body
+          //neighbor.x == segment.x -> horizontal position is same
+          //neighbor.y == segment.y -> vertical position is same
+          //if both are true then the neighbor is a body segment
+          if (neighbor.x == segment.x && neighbor.y == segment.y){
+            isBlocked = true;
+            break;
+          }
+        }
+
+        //if the neighbor is a body segment of an opponent then skip
+        for (let i = 0; i < opponents.length; i++){
+          const opponent = opponents[i]; // each opponent is a snake
+          for (let j = 0; j < opponent.body.length; j++){
+            if(neighbor.x == opponent.body[j].x && neighbor.y == opponent.body[j].y){
+              isBlocked = true;
+            }
+          }
+        }
+
+        //if is blocked then skip
+        if(isBlocked){
+          continue;
+        }
+
+        //add to queue when not blocked or visited
+        if(!visited.includes(key(neighbor))){
+           queue.push(neighbor);
+        }
+        
+      }
+        
+    }
+
+  }
 
 runServer({
   info: info,
